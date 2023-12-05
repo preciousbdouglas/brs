@@ -94,7 +94,7 @@ def image_cover(df, book_name):
 
 def get_user(df, id):
     # books = ""
-    user_data = df[df["user_id"] == id][:10]
+    user_data = df[df["user_id"] == id]
     books = user_data["book_title"].values
     rating = user_data["rating"].values
     authors = user_data["book_author"].values
@@ -139,6 +139,8 @@ if rec_btn:
     scores = []
 
     for rec in top_rec:
+        if rec["title"] in books:
+            continue
         covers.append(image_cover(df, rec["title"]))
         titles.append(rec["title"])
         scores.append(rec["score"])
