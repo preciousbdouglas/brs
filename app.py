@@ -4,25 +4,21 @@ import pandas as pd
 import tensorflow as tf
 import numpy as np
 import requests
+import io
 
 
 st.set_page_config(layout="centered")
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-col1, col2 = st.columns([3,5])
-with col1:
-    st.image("images//cover2.jpeg")
-with col2:
-    st.subheader("Book Recommendation App")
-    st.write("🎯A sophisticated collaborative book recommendation system leveraging advanced machine learning techniques to provide tailored and insightful book recommendations 📚 to users.")
+st.title("📚Book Recommendation App")
 st.markdown("#")
 st.markdown("#")
 
 
-st.sidebar.subheader(":gear: Recommendation Settings")
+st.sidebar.markdown(f" ## :gear: Recommendation Settings")
 st.sidebar.markdown("---")
-no_of_rec = int(st.sidebar.slider("Select Number of Book Recommendations", 1, 10, 3))
+no_of_rec = int(st.sidebar.slider("Select Number of Book Recommendations", 1, 50, 10))
 n_cols = st.sidebar.number_input("Select Number of Display Columns", 2, 8, 5)
 n_cols = int(n_cols)
 
@@ -48,6 +44,18 @@ unique_book_titles, unique_user_ids, rec_model, df = load_data()
 
 def recommend_books(user_id, top_k):
     recommendations = []
+    # ratings = {}
+
+    # for book_title in unique_book_titles[:top_k]:
+    #     ratings[book_title] = rec_model(
+    #         {"user_id": np.array([user_id]), "book_title": np.array([book_title])}
+    #     )
+
+    # for title, score in sorted(ratings.items(), key=lambda x: x[1], reverse=True):
+    #     top_books = {}
+    #     top_books["title"] = title
+    #     top_books["score"] = f"{score[0][0]: .2f}"
+    #     recommendations.append(top_books)
 
     scores, titles = rec_model([user_id])
 
@@ -85,19 +93,19 @@ def image_cover(df, book_name):
 
 
 def get_user(df, id):
-    user_data = df[df["user_id"] == id]
+    # books = ""
+    user_data = df[df["user_id"] == id][:10]
     books = user_data["book_title"].values
     rating = user_data["rating"].values
     authors = user_data["book_author"].values
 
     return books, rating, authors
 
-st.sidebar.markdown("---")
-st.sidebar.subheader("Book Recommendation")
-user_id = st.sidebar.selectbox("Select a user ID", unique_user_ids)
-rec_btn = st.sidebar.button("Recommend Books")
-st.markdown("#")
 
+user_id = st.selectbox("Select a user", unique_user_ids)
+rec_btn = st.button("Recommend Books")
+st.markdown("#")
+st.markdown("#")
 
 
 plc_holder = st.container()
@@ -105,7 +113,7 @@ plc_holder = st.container()
 
 if rec_btn:
     with plc_holder:
-        st.markdown(f"#### Books user with ID {user_id} has read")
+        st.markdown(f"#### These are some of the books user {user_id} has read")
         st.markdown("---")
         books, ratings, authors = get_user(df, int(user_id))
 
@@ -121,7 +129,7 @@ if rec_btn:
     st.markdown("---")
 
     # RECOMMENDATION SIDE
-    st.subheader(f"Top {no_of_rec} Recommended Books for user with ID {user_id}")
+    st.subheader(f"Top {no_of_rec} Ranked Book Recommendations for user {user_id}")
     st.markdown("---")
 
     top_rec = recommend_books(user_id, no_of_rec)
@@ -131,8 +139,6 @@ if rec_btn:
     scores = []
 
     for rec in top_rec:
-        if rec["title"] in books:
-            continue
         covers.append(image_cover(df, rec["title"]))
         titles.append(rec["title"])
         scores.append(rec["score"])
