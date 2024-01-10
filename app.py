@@ -16,10 +16,10 @@ st.markdown("#")
 st.markdown("#")
 
 
-st.sidebar.markdown(f" ## :gear: Recommendation Settings")
+st.sidebar.markdown(f" ## :gear: Settings")
 st.sidebar.markdown("---")
-no_of_rec = int(st.sidebar.slider("Select Number of Book Recommendations", 1, 50, 10))
-n_cols = st.sidebar.number_input("Select Number of Display Columns", 2, 8, 5)
+no_of_rec = int(st.sidebar.slider("Select Number of Book Recommendations", 1, 5, 3))
+n_cols = st.sidebar.number_input("Display Columns", 1, 5, 3 )
 n_cols = int(n_cols)
 
 
@@ -44,19 +44,7 @@ unique_book_titles, unique_user_ids, rec_model, df = load_data()
 
 def recommend_books(user_id, top_k):
     recommendations = []
-    # ratings = {}
-
-    # for book_title in unique_book_titles[:top_k]:
-    #     ratings[book_title] = rec_model(
-    #         {"user_id": np.array([user_id]), "book_title": np.array([book_title])}
-    #     )
-
-    # for title, score in sorted(ratings.items(), key=lambda x: x[1], reverse=True):
-    #     top_books = {}
-    #     top_books["title"] = title
-    #     top_books["score"] = f"{score[0][0]: .2f}"
-    #     recommendations.append(top_books)
-
+   
     scores, titles = rec_model([user_id])
 
     for idx, title in enumerate(titles[0][:top_k]):
@@ -94,7 +82,7 @@ def image_cover(df, book_name):
 
 def get_user(df, id):
     # books = ""
-    user_data = df[df["user_id"] == id][:10]
+    user_data = df[df["user_id"] == id]
     books = user_data["book_title"].values
     rating = user_data["rating"].values
     authors = user_data["book_author"].values
@@ -105,7 +93,7 @@ def get_user(df, id):
 user_id = st.selectbox("Select a user", unique_user_ids)
 rec_btn = st.button("Recommend Books")
 st.markdown("#")
-st.markdown("#")
+#st.markdown("#")
 
 
 plc_holder = st.container()
@@ -113,7 +101,7 @@ plc_holder = st.container()
 
 if rec_btn:
     with plc_holder:
-        st.markdown(f"#### These are some of the books user {user_id} has read")
+        st.markdown(f"## User {user_id}'s reading history")
         st.markdown("---")
         books, ratings, authors = get_user(df, int(user_id))
 
@@ -122,14 +110,14 @@ if rec_btn:
         cols = [column for row in rows for column in row]
 
         for col, title, rating, author in zip(cols, books, ratings, authors):
-            col.write(f" :blue[Book Title]: {title[:15]}...")
+            col.write(f" :blue[Book Title]: {title[:30 ]}...")
             col.write(f" :blue[Book Rating]: {rating}")
             col.write(f" :blue[Book Author]: {author}")
             col.image(image_cover(df, title))
     st.markdown("---")
 
     # RECOMMENDATION SIDE
-    st.subheader(f"Top {no_of_rec} Ranked Book Recommendations for user {user_id}")
+    st.markdown(f"## {no_of_rec} Recommended Books for user {user_id}")
     st.markdown("---")
 
     top_rec = recommend_books(user_id, no_of_rec)
@@ -139,6 +127,8 @@ if rec_btn:
     scores = []
 
     for rec in top_rec:
+        if rec["title"] in books:
+            continue
         covers.append(image_cover(df, rec["title"]))
         titles.append(rec["title"])
         scores.append(rec["score"])
